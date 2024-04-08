@@ -1,0 +1,23 @@
+version: '1.0'
+services:
+  cam_shift:
+    image: maratsher/cam_shift:base
+    restart: unless-stopped
+    command: bash -c "mkdir -p ed_logs && python3 -m env_detector"
+    environment:
+      - LOGGING=True  
+      - SOURCE=cam
+      - WIDTH=2448
+      - HEIGHT=2048
+      - FRAME_FORMAT=GRAY
+      - CAM_HOST=/tmp/camera.sock
+      - CAM_PORT=8059
+      - FRAMES_PER_SECOND=20
+    volumes:
+      - ./ed_logs:/app/ed_logs
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu, utility]

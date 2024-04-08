@@ -14,20 +14,17 @@ class Extension(Enum):
     bin = ".bin"
     
 class AppSettings(BaseSettings):
-    PORT: int = 5050
     LOGGING: bool = True
     DEBUG: bool = False
-    SOURCE: str = SRC.img.value
+    SOURCE: str = SRC.cam.value
     
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
         
-class RabbitSettings(AppSettings):
-    RABBIT_BROKER: str = "amqp://guest:guest@192.168.64.77:5672/"
     
 
-class ImageSettings(RabbitSettings):
+class ImageSettings(AppSettings):
     WIDTH: int = 2448
     HEIGHT: int = 2048
     FRAME_FORMAT: str = 'GRAY'
@@ -66,4 +63,3 @@ class WriterSettings(ImageSettings):
 CAM_SETTINGS = TcpCameraSettings()
 WRITE_SETTINGS = WriterSettings()
 APP_SETTINGS = AppSettings()
-RABBIT_SETTINGS = RabbitSettings()

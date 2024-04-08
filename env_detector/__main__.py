@@ -1,4 +1,4 @@
 from env_detector import Service
 
-cam_shift_service = Service()
-cam_shift_service.start()
+env_detector_service = Service()
+env_detector_service.start()

@@ -1,4 +1,4 @@
-from env_detector.metrics import BaseMetric
+from env_detector.metrics import BaseMetric, count_exec_time
 
 import numpy as np
 from skimage.feature import greycomatrix, greycoprops
@@ -6,9 +6,10 @@ from skimage.feature import greycomatrix, greycoprops
 
 class GLCMMetric(BaseMetric):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, name) -> None:
+        super().__init__(name)
 
+    @count_exec_time
     def calculate(self, frame) -> tuple:
         """
         Calculate texture analysis metrics from the image's GLCM.
@@ -32,4 +33,4 @@ class GLCMMetric(BaseMetric):
         energy = greycoprops(glcm, 'energy')[0, 0]
         correlation = greycoprops(glcm, 'correlation')[0, 0]
 
-        return (contrast, homogeneity, energy, correlation)
+        return { "contrast": contrast, "homogeneity": homogeneity, "energy": energy, "correlation" : correlation }

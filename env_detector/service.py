@@ -1,5 +1,8 @@
 import time
 import traceback
+import pickle
+
+from datetime import datetime
 
 import cv2
 
@@ -21,9 +24,11 @@ class Service:
             self._camera = TcpCamera(is_stop=self._cam_stop_flag)
         elif APP_SETTINGS.SOURCE == SRC.img.value:
             self._camera = ImgCamera(input="dataset_bad/", repeat_times=100)
+            
+        self._log_dir = "ed_logs/"
 
         self._simple_metrics: list[BaseMetric] = [
-            AverageMetric(), DynamicRangeMetric(), GLCMMetric(), TextureMetric()]
+            AverageMetric("Average brightness"), DynamicRangeMetric("Dynamic range"), GLCMMetric("GLCM"), TextureMetric("Texture")]
 
         self._running = False
 
@@ -42,7 +47,8 @@ class Service:
 
                     # get image from camera
                     frame_data = self._camera.get_image()
-
+                    dt = datetime.fromtimestamp(frame_data.metadata.timestamp)
+                    
                     if frame_data:
                         # convert bayer to greyscale if necessary
                         if frame_data.pixel_format == IMAGE_FORMAT.BAYERRG8:
@@ -53,20 +59,41 @@ class Service:
                         else:
                             self._curr_frame = frame_data.frame
 
-                        # calculate matrics
+                        metrics_dic = {}
+                       
                         for metric in self._simple_metrics:
-                            print(
-                                f"{metric._name} : {metric.calculate(self._curr_frame)}")
-
+                            # calculate matrics
+                            metrics_scores = metric.calculate(self._curr_frame)
+                            
+                            # save txt
+                            with open(f"{self._log_dir}{dt}.txt", "a") as file:
+                                file.write(metric._name+"\n")
+                                for name, score in metrics_scores.items():
+                                    file.write(f"{name} = {score}; ")
+                                file.write("\n\n")
+                                
+                                #TODO remove
+                                #print(f"{metric.name} : {metric.calculate(self._curr_frame)} : {metric.exec_time}")
+                                
+                            # make pickle
+                            metrics_dic[metric._name] = metrics_scores
+                        
+                        # save pickle    
+                        with open(f'{self._log_dir}{dt}.pickle', 'wb') as f:
+                            pickle.dump(metrics_dic, f)
+                                
+                        # save image
+                        cv2.imwrite(f"{self._log_dir}/{dt}.png", self._curr_frame)
+                        
                         # stop for a set time
-                        time.sleep(self._grab_frame_interval/1000)
+                        time.sleep(1)
                     else:
                         logger.debug("Failed to capture the frame")
         except KeyboardInterrupt:
             logger.info("Keyboard Interrupt")
             self._camera._exit()
         except Exception as e:
-            logger.info(f"Error occurred: {e}\n{traceback.format_exc()}")
+            print(f"Error occurred: {e}\n{traceback.format_exc()}")
             self._camera._exit()
         finally:
             logger.info("Service stopped...")

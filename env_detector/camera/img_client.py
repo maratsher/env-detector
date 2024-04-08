@@ -4,10 +4,10 @@ from pathlib import Path
 
 import cv2
 
-from cam_shift.utils.camera_utils import ImageFrame, FrameMetadata, IMAGE_FORMAT
-from cam_shift.camera.base import BaseCamera
+from env_detector.utils.camera_utils import ImageFrame, FrameMetadata, IMAGE_FORMAT
+from env_detector.camera.base import BaseCamera
 
-from cam_shift.config import logger
+from env_detector.config import logger
 
 
 class ImgCamera(ContextDecorator, BaseCamera):

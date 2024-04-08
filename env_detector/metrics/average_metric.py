@@ -1,13 +1,14 @@
 import numpy as np
 
-from env_detector.metrics import BaseMetric
+from env_detector.metrics import BaseMetric, count_exec_time
 
 
 class AverageMetric(BaseMetric):
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, name) -> None:
+        super().__init__(name)
         self._low_threshold = 0.005
 
-    def calculate(self, frame) -> tuple:
-        return (np.mean(frame), )
+    @count_exec_time
+    def calculate(self, frame):
+        return {"mean " : np.mean(frame), }
