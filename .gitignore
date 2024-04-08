@@ -1,0 +1,16 @@
+.vscode/
+.idea/
+__pycache__/
+output/
+*.jpg
+*.png
+*.gif
+hist_output/
+.venv/
+env/
+venv/
+*.txt
+!requirements.txt
+*.log
+data/
+logs/
