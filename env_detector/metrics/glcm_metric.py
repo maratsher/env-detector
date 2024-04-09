@@ -6,8 +6,8 @@ from skimage.feature import greycomatrix, greycoprops
 
 class GLCMMetric(BaseMetric):
 
-    def __init__(self, name) -> None:
-        super().__init__(name)
+    def __init__(self, name, win_size=0) -> None:
+        super().__init__(name, win_size)
 
     @count_exec_time
     def calculate(self, frame) -> tuple:

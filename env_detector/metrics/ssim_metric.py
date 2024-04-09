@@ -5,8 +5,8 @@ from skimage.metrics import structural_similarity as ssim
 
 class SSIMMetric(RelativeMetric):
 
-    def __init__(self, name) -> None:
-        super().__init__(name)
+    def __init__(self, name, win_size=0) -> None:
+        super().__init__(name, win_size)
         self._reference_frame = None
 
     def set_reference(self, reference):
@@ -14,6 +14,8 @@ class SSIMMetric(RelativeMetric):
 
     @count_exec_time
     def calculate(self, frame) -> tuple:
+        if self._reference_frame is None:
+            return { "ssim_score": None }
+        
         (score, _) = ssim(frame, self._reference_frame, full=True)
-
-        return { "ssim_score", score }
+        return { "ssim_score": score,  }

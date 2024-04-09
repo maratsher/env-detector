@@ -6,8 +6,8 @@ from env_detector.metrics import BaseMetric, count_exec_time
 
 class RMSMetric(BaseMetric):
 
-    def __init__(self, name) -> None:
-        super().__init__(name)
+    def __init__(self, name, win_size=0) -> None:
+        super().__init__(name, win_size)
         self._low_threshold = 0.005
         self._high_threshold = 0.995
 
