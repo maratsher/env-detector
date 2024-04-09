@@ -13,6 +13,8 @@ services:
       - CAM_HOST=/tmp/camera.sock
       - CAM_PORT=8059
       - FRAMES_PER_SECOND=20
+    ports:
+      - "5051:5051"
     volumes:
       - ./ed_logs:/app/ed_logs
       - /tmp:/tmp
