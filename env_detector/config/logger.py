@@ -19,7 +19,7 @@ def create_logger(name, log_file_name, log_level=None):
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     file_handler = logging.FileHandler(
-        f'env_logs/{log_file_name}.log', mode='w')
+        f'ed_logs/{log_file_name}.log', mode='w')
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logger.level)
 
