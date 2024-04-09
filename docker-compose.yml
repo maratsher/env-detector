@@ -1,7 +1,7 @@
 version: '1.0'
 services:
-  cam_shift:
-    image: maratsher/cam_shift:base
+  env_detector:
+    image: maratsher/env-detector:latest
     restart: unless-stopped
     command: bash -c "mkdir -p ed_logs && python3 -m env_detector"
     environment:
