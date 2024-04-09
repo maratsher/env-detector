@@ -10,6 +10,6 @@ RUN apt-get update && apt-get install -y libsm6 libxext6 libxrender-dev libgl1-m
 COPY . /app
 WORKDIR /app
 
-RUN pip3 install numpy Cython
+RUN pip3 install numpy==1.19.4 Cython==3.0.8
 
 RUN pip3 install --no-cache-dir -r requirements.txt
