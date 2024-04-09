@@ -14,5 +14,5 @@ venv/
 *.log
 data/
 logs/
-*/
-!env_detector/
+/*/
+!/env_detector/

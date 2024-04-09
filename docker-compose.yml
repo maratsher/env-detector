@@ -1,7 +1,7 @@
 version: '1.0'
 services:
   env_detector:
-    image: maratsher/env-detector:ubuntu6
+    image: maratsher/env-detector:latest
     restart: unless-stopped
     command: bash -c "mkdir -p ed_logs && python3 -m env_detector"
     environment:
