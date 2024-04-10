@@ -132,7 +132,7 @@ class Service:
         elif command == Commands.STOP:
             self._running = False
         elif command == Commands.SET_FPS:
-            self._fps = int(args)
+            self._fps = float(args)
         elif command == Commands.GET_FPS:
             self._cor_conn.send({"cmd": Commands.GET_FPS, "args": self._fps})
         elif command == Commands.SET_REF_SSIM:

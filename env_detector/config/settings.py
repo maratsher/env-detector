@@ -16,7 +16,7 @@ class Extension(Enum):
 class AppSettings(BaseSettings):
     LOGGING: bool = True
     DEBUG: bool = False
-    SOURCE: str = SRC.img.value
+    SOURCE: str = SRC.cam.value
     PORT: int = 5051
     
     class Config:
