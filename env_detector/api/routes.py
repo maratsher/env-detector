@@ -15,7 +15,7 @@ def configure_routes(ns: Namespace, conn: Connection):
     })
 
     fps = ns.model('FPS', {
-        'fps': fields.Integer(required=True, description='fps'),
+        'fps': fields.Float(required=True, description='fps'),
     })
     
 
