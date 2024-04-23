@@ -139,21 +139,3 @@ class Service:
             self._ssim.set_reference(self._curr_frame)
             logger.info("Setted new referance frame ssim")
             
-            
-# base_url = "http://camera-api-address/v1"
-# api = CameraAPI(base_url)
-# camera_settings_manager = CameraSettingsManager(api)
-
-# # Пример настройки параметров камеры
-# settings_to_apply = {
-#     "ExposureTime": 0.005,
-#     "Gain": 12.5,
-#     "DeviceUserID": "Camera1"
-# }
-# response = camera_settings_manager.apply_settings(settings_to_apply)
-# print(response)
-
-# # Пример получения значений настроек
-# settings_to_retrieve = ["ExposureTime", "Gain", "DeviceUserID"]
-# settings_values = camera_settings_manager.get_settings(settings_to_retrieve)
-# print(settings_values)
