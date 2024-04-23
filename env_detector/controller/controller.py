@@ -1,8 +1,10 @@
 from env_detector.controller import DayPreset, NightPreset
 
 class CameraControl:
-    def __init__(self, camera_settings_manager):
-        self.manager = camera_settings_manager
+    def __init__(self, camera_settings_manager, motor_settings_manager):
+        self._cms = camera_settings_manager
+        self._msm = motor_settings_manager
+        
         self.mode = 'Day'  # Default mode is Day
         self.presets = {
             'Day': DayPreset(),
@@ -11,9 +13,10 @@ class CameraControl:
 
     def update(self, gain):
         settings_to_apply = {}
-        current_settings = self.manager.get_settings(["ExposureTime", ""])
-        exposure_time = current_settings['ExposureTime']
-        aperture = current_settings['Aperture']
+        current_settings = self._cms.get_settings(["ExposureTime", "Gain"])
+        exposure_time = current_settings['ExposureTime']["value"]
+        gain = current_settings['Gain']["value"]
+        aperture = self._msm.apply_command("diaphragm", "move-at", 0)["value"]
 
         if self.mode == 'Day':
             if gain > 3.5:

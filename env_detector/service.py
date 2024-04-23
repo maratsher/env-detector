@@ -10,7 +10,8 @@ import os
 from multiprocessing import Value, Pipe
 # from datetime import datetime
 
-from env_detector.camera import TcpCamera, ImgCamera
+from env_detector.camera import TcpCamera, ImgCamera, API, CameraSettingsManager, MotorSettingsManager
+from env_detector.controller import CameraControl
 from env_detector.config import logger, APP_SETTINGS, SRC
 from env_detector.utils import IMAGE_FORMAT, Commands, save_txt
 from env_detector.api import FlaskAPI
@@ -42,6 +43,21 @@ class Service:
                 
         self._fps = 0.1
         self._running = False
+        
+        # camera settings
+        self._base_url = "http://192.168.64.77"    
+ 
+        self._url_cam = f"{self._base_url}:8059"
+        self._url_motor = f"{self._base_url}:8059"
+        
+        self._api_cam = API(self._url_cam)
+        self._api_motor = API(self._url_motor)
+        
+        self._csm = CameraSettingsManager(self._api_cam)
+        self._msm = MotorSettingsManager(self._api_motor)
+        
+        self._camera_controller = CameraControl(self._csm)
+        
 
     def start(self):
         self._running = True
@@ -109,6 +125,8 @@ class Service:
                                 
                         # save image
                         cv2.imwrite(f"{subdir_path}/{dt}.png", self._curr_frame)
+                        
+                        self._camera_controller.update()
                         
                         # stop for a set time
                         time.sleep(1/self._fps)
