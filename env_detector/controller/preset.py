@@ -15,6 +15,13 @@ class DayPreset(Preset):
             "Gamma": 0.8,
             "Brightness": 90,
             "Contrast": 51,
+            "ContrastThreshold": 128,
+            "FFCEnable": "On",
+            "BlackLevel": 60,
+            "SharpnessEnabled": "Off",
+            "Sharpness": 50,
+            "DenoisingEnabled": "Off",
+            "Denoising": 50,
             "SetPulse": 1
         })
 
@@ -28,5 +35,12 @@ class NightPreset(Preset):
             "Gamma": 0.6,
             "Brightness": 100,
             "Contrast": 45,
+            "ContrastThreshold": 20,
+            "FFCEnable": "On",
+            "BlackLevel": 60,
+            "SharpnessEnabled": "Off",
+            "Sharpness": 50,
+            "DenoisingEnabled": "Off",
+            "Denoising": 50,
             "SetPulse": 100
         })

@@ -11,12 +11,16 @@ class CameraControl:
             'Night': NightPreset()
         }
 
-    def update(self, gain):
+    def update(self):
         settings_to_apply = {}
-        current_settings = self._cms.get_settings(["ExposureTime", "Gain"])
+        current_settings = self._cms.get_settings([("ExposureTime", "float"), ("Gain", "float")])
         exposure_time = current_settings['ExposureTime']["value"]
         gain = current_settings['Gain']["value"]
         aperture = self._msm.apply_command("diaphragm", "move-at", 0)["value"]
+        
+        print("exposure_time", exposure_time)
+        print("gain", gain)
+        print("aperture", aperture)
 
         if self.mode == 'Day':
             if gain > 3.5:
@@ -42,7 +46,8 @@ class CameraControl:
                         settings_to_apply["ExposureTime"] = exposure_time - 1
                     else:
                         self.switch_mode('Day')
-
+        
+        print(settings_to_apply)
         self.manager.apply_settings(settings_to_apply)
 
     def switch_mode(self, mode):

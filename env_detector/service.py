@@ -56,7 +56,7 @@ class Service:
         self._csm = CameraSettingsManager(self._api_cam)
         self._msm = MotorSettingsManager(self._api_motor)
         
-        self._camera_controller = CameraControl(self._csm)
+        self._camera_controller = CameraControl(self._csm, self._msm)
         
 
     def start(self):
