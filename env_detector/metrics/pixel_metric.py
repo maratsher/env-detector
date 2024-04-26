@@ -11,8 +11,28 @@ class PixelMetric(BaseMetric):
         self._low_threshold = 0.005
 
     @count_exec_time
-    def calculate(self, frame):
-        histogram = cv2.calcHist([frame], [0], None, [256], [0, 256])
-        histogram_norm = histogram.ravel()/histogram.max()
-        std_deviation = np.std(histogram_norm)
-        return {"mean" : np.mean(frame), "std_hist": std_deviation}
+    def calculate(self, frame, bboxes):
+        mask = np.zeros(frame.shape[:2], dtype=bool)
+        for x_min, y_min, x_max, y_max in bboxes:
+            mask[y_min:y_max, x_min:x_max] = True
+        
+        mask_out = ~mask
+        
+        def calc_stats(f, m=None):
+            if m is not None:
+                f = f[m]
+            if f.size == 0:
+                return np.nan, np.nan  # Возвращаем NaN, если нет пикселей
+            histogram = cv2.calcHist([f], [0], None, [256], [0, 256])
+            histogram_norm = histogram.ravel() / histogram.max()
+            return np.mean(f), np.std(histogram_norm)
+        
+        mean_total, std_hist_total = calc_stats(frame)
+        mean_inside, std_hist_inside = calc_stats(frame, mask)
+        mean_outside, std_hist_outside = calc_stats(frame, mask_out)
+        
+        return {
+            "mean_total": mean_total, "std_hist_total": std_hist_total,
+            "mean_cars": mean_inside, "std_hist_cars": std_hist_inside,
+            "mean_back": mean_outside, "std_hist_back": std_hist_outside
+        }

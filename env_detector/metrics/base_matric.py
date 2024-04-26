@@ -31,7 +31,7 @@ class BaseMetric(metaclass=abc.ABCMeta):
         return self._name
 
     @abc.abstractmethod
-    def calculate(self, frame) -> dict:
+    def calculate(self, frame, bboxes=None) -> dict:
         return None
         
     def _slide_window(self, new_element):        

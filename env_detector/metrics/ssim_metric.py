@@ -13,7 +13,7 @@ class SSIMMetric(RelativeMetric):
         self._reference_frame = reference
 
     @count_exec_time
-    def calculate(self, frame) -> tuple:
+    def calculate(self, frame, bboxes=None) -> tuple:
         if self._reference_frame is None:
             return { "ssim_score": None }
         
