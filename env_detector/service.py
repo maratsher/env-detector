@@ -45,10 +45,10 @@ class Service:
         self._running = False
         
         # camera settings
-        self._base_url = "http://192.168.64.77"    
+        self._base_url = "http://10.135.2.15"    
  
         self._url_cam = f"{self._base_url}:8059"
-        self._url_motor = f"{self._base_url}:8059"
+        self._url_motor = f"{self._base_url}:8070"
         
         self._api_cam = API(self._url_cam)
         self._api_motor = API(self._url_motor)
@@ -93,9 +93,9 @@ class Service:
                             self._curr_frame = frame_data.frame
                           
                         # make subdir 
-                        subdir_path = f"{self._log_dir}/{dt}"
-                        if not os.path.exists(subdir_path):
-                            os.makedirs(subdir_path)
+                        # subdir_path = f"{self._log_dir}/{dt}"
+                        # if not os.path.exists(subdir_path):
+                        #     os.makedirs(subdir_path)
 
                         metrics_dic = {}
                        
@@ -103,33 +103,33 @@ class Service:
                             # calculate matrics
                             metrics_scores = metric.calculate(self._curr_frame)
                             
-                            # save txt
-                            with open(f"{subdir_path}/{dt}.txt", "a") as file:
-                                save_txt(file, metric.name, metrics_scores, metric.exec_time)
+                            # # save txt
+                            # with open(f"{subdir_path}/{dt}.txt", "a") as file:
+                            #     save_txt(file, metric.name, metrics_scores, metric.exec_time)
                                 
                             # make pickle
                             metrics_dic[metric.name] = metrics_scores
                         
-                        # save ssim
-                        ssim_scores = self._ssim.calculate(self._curr_frame)
-                        with open(f"{subdir_path}/{dt}.txt", "a") as file:
-                            save_txt(file, self._ssim.name, ssim_scores, metric.exec_time)
-                        metrics_dic[self._ssim.name] = ssim_scores
+                        # # save ssim
+                        # ssim_scores = self._ssim.calculate(self._curr_frame)
+                        # with open(f"{subdir_path}/{dt}.txt", "a") as file:
+                        #     save_txt(file, self._ssim.name, ssim_scores, metric.exec_time)
+                        # metrics_dic[self._ssim.name] = ssim_scores
                             
                         # logging
                         logger.info(f"{dt}: {metrics_dic}")
                         
-                        # save pickle    
-                        with open(f'{subdir_path}/{dt}.pickle', 'wb') as f:
-                            pickle.dump(metrics_dic, f)
+                        # # save pickle    
+                        # with open(f'{subdir_path}/{dt}.pickle', 'wb') as f:
+                        #     pickle.dump(metrics_dic, f)
                                 
-                        # save image
-                        cv2.imwrite(f"{subdir_path}/{dt}.png", self._curr_frame)
+                        # # save image
+                        # cv2.imwrite(f"{subdir_path}/{dt}.png", self._curr_frame)
                         
                         self._camera_controller.update()
                         
                         # stop for a set time
-                        time.sleep(1/self._fps)
+                        time.sleep(3)
                     else:
                         logger.debug("Failed to capture the frame")
         except KeyboardInterrupt:

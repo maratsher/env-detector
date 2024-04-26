@@ -4,3 +4,4 @@ pydantic==1.9.2
 Flask==2.0.3
 flask-restx==0.5.1
 pika
+requests
