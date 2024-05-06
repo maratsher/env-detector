@@ -11,7 +11,7 @@ from multiprocessing.connection import Connection
 import numpy as np
 
 from env_detector.utils.camera_utils import ImageFrame, FrameMetadata, IMAGE_FORMAT
-from env_detector.camera.base import BaseCamera
+from env_detector.camera.base_camera import BaseCamera
 from env_detector.config.settings import CAM_SETTINGS
 from env_detector.config import logger
 

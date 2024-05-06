@@ -16,6 +16,9 @@ class ImageFlow():
         frame_path, self.bboxes = json_parser.parse_json()
 
         image_processor = ImageProcessor(frame_path)
-        self.frame = image_processor.load_img()
+        try:
+            self.frame = image_processor.load_img()
+        except Exception:
+            self.frame = None
         
         return self.frame, self.bboxes

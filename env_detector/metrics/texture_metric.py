@@ -11,7 +11,7 @@ class TextureMetric(BaseMetric):
         super().__init__(name, win_size)
 
     @count_exec_time
-    def calculate(self, frame, bboxes):
+    def calculate(self, frame, bboxes):        
         mask = np.zeros(frame.shape[:2], dtype=bool)
         for x_min, y_min, x_max, y_max in bboxes:
             mask[y_min:y_max, x_min:x_max] = True
@@ -30,8 +30,13 @@ class TextureMetric(BaseMetric):
             return entropy, skewness
 
         entropy_total, skewness_total = calc_stats(frame)
-        entropy_inside, skewness_inside = calc_stats(frame, mask)
-        entropy_outside, skewness_outside = calc_stats(frame, mask_out)
+        
+        if bboxes == []:
+            entropy_inside, skewness_inside = None, None
+            entropy_outside, skewness_outside = None, None
+        else:    
+            entropy_inside, skewness_inside = calc_stats(frame, mask)
+            entropy_outside, skewness_outside = calc_stats(frame, mask_out)
 
         return {
             "entropy_total": entropy_total, "skewness_total": skewness_total,

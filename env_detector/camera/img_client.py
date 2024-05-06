@@ -5,7 +5,7 @@ from pathlib import Path
 import cv2
 
 from env_detector.utils.camera_utils import ImageFrame, FrameMetadata, IMAGE_FORMAT
-from env_detector.camera.base import BaseCamera
+from env_detector.camera.base_camera import BaseCamera
 
 from env_detector.config import logger
 

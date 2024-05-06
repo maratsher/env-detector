@@ -1,8 +1,8 @@
 import logging
 
-from .base import BaseCamera
+from .base_camera import BaseCamera
 from .cam_client import TcpCamera
 from .img_client import ImgCamera
-from .base_api import API
-from .camera_settings_manager import CameraSettingsManager
-from .motor_settings_manager import MotorSettingsManager
+from ..tuner.request_manager import API
+from ..tuner.camera_tuner import CameraSettingsManager
+from ..tuner.motor_tuner import MotorSettingsManager

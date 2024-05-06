@@ -28,8 +28,12 @@ class PixelMetric(BaseMetric):
             return np.mean(f), np.std(histogram_norm)
         
         mean_total, std_hist_total = calc_stats(frame)
-        mean_inside, std_hist_inside = calc_stats(frame, mask)
-        mean_outside, std_hist_outside = calc_stats(frame, mask_out)
+        if bboxes == []:
+            mean_inside, std_hist_inside = None, None
+            mean_outside, std_hist_outside = None, None
+        else:
+            mean_inside, std_hist_inside = calc_stats(frame, mask)
+            mean_outside, std_hist_outside = calc_stats(frame, mask_out)
         
         return {
             "mean_total": mean_total, "std_hist_total": std_hist_total,

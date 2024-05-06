@@ -1,10 +1,13 @@
 from env_detector.controller import DayPreset, NightPreset
+from env_detector.camera import CameraSettingsManager, MotorSettingsManager, 
 from env_detector.config import logger
 
-class CameraControl:
-    def __init__(self, camera_settings_manager, motor_settings_manager):
-        self._cms = camera_settings_manager
-        self._msm = motor_settings_manager
+class CameraControlАlgorithm:
+    def __init__(self, camera_settings_manager, motor_settings_manager, 
+                 telemetry_settings_manager):
+        self._cms: CameraSettingsManager = camera_settings_manager
+        self._msm: MotorSettingsManager = motor_settings_manager
+        self._tsm: 
         
         self.mode = 'Day'  # Default mode is Day
         self.presets = {
@@ -15,11 +18,12 @@ class CameraControl:
         logger.info("Init camera control")
 
     def update(self):
+        logger.info(f"Current mode: {self.mode}")
         settings_to_apply = {}
         current_settings = self._cms.get_settings([("ExposureTime", "float"), ("Gain", "float")])
         exposure_time = current_settings['ExposureTime']["value"]
         gain = current_settings['Gain']["value"]
-        aperture = int(self._msm.apply_command("diaphragm", "move-at", 0)["value"])
+        aperture = int(self._msm.get_value("diaphragm")["value"])
         
         logger.info(f"INPUT: ExposureTime {exposure_time} Gain {gain} Aperture {aperture}")
 
@@ -34,7 +38,7 @@ class CameraControl:
                     if gain >= 30:
                         self.switch_mode('Night')
             elif gain <= 1.5:
-                if exposure_time > 300:
+                if exposure_time > 200:
                     settings_to_apply["ExposureTime"] = float(exposure_time - 10)
                 if aperture > 40:
                     #settings_to_apply["Aperture"] = aperture - 0.1
@@ -57,4 +61,4 @@ class CameraControl:
     def switch_mode(self, mode):
         logger.info(f"Switched mode to {mode}")
         self.mode = mode
-        self.presets[mode].apply(self.manager)
+        self.presets[mode].apply(self._cms)

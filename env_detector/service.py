@@ -1,18 +1,18 @@
 import time
 import traceback
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import cv2
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from multiprocessing import Value, Pipe
+from multiprocessing import Pipe
 # from datetime import datetime
 
-from env_detector.camera import TcpCamera, ImgCamera, API, CameraSettingsManager, MotorSettingsManager
-from env_detector.controller import CameraControl
-from env_detector.config import logger, APP_SETTINGS, SRC
-from env_detector.utils import IMAGE_FORMAT, Commands
+from env_detector.camera import API, CameraSettingsManager, MotorSettingsManager
+from env_detector.controller import CameraControl, DayPreset, NightPreset
+from env_detector.config import logger, APP_SETTINGS
+from env_detector.utils import Commands
 from env_detector.api import FlaskAPI
 from env_detector.metrics import PixelMetric, DynamicRangeMetric, GLCMMetric, TextureMetric, BaseMetric, SSIMMetric, SharpnessMetric, RMSMetric
 from env_detector.images_reader import ImageFlow
@@ -21,21 +21,22 @@ from env_detector.images_reader import ImageFlow
 class Service:
 
     def __init__(self) -> None:
-        # setting the source for receiving frames
-        # self._cam_stop_flag = Value('i', 0)
-        # if APP_SETTINGS.SOURCE == SRC.cam.value:
-        #     self._camera = TcpCamera(is_stop=self._cam_stop_flag)
-        # elif APP_SETTINGS.SOURCE == SRC.img.value:
-        #     self._camera = ImgCamera(input="dataset/", repeat_times=1)
-        self._scheduler = BackgroundScheduler()
-        self._scheduler.add_job(self._get_frame, 'interval', seconds=10)
+        # frame reader
+        self._get_frame_sch = BackgroundScheduler()
+        self._get_frame_sch.add_job(self._get_frame, 'interval', seconds=10)
         self._is_get_frame = False
-        self._scheduler.start()
+        self._get_frame_sch.start()
         
-        self._img_flow = ImageFlow("/home/npo/docker/storage/snap-pass")
-            
+        self._img_flow = ImageFlow("/tmp/storage/snap-pass")
+        
+        # logging    
         self._log_dir = "ed_logs"
+        self._save_frame_sch = BackgroundScheduler()
+        self._save_frame_sch.add_job(self._save_frame, "interval", seconds=30*60)
+        self._is_save_frame = False
+        self._save_frame_sch.start()
 
+        # metrics
         self._simple_metrics: list[BaseMetric] = [
             PixelMetric("Pixel Metric", 10), DynamicRangeMetric("Dynamic range"), GLCMMetric("GLCM"), TextureMetric("Texture"), 
             SharpnessMetric("Sharpness")]
@@ -46,7 +47,8 @@ class Service:
         self._cor_conn, self._api_conn = Pipe()
         self._flask_api = FlaskAPI(self._api_conn, port=APP_SETTINGS.PORT)
         self._flask_api.start()
-                
+        
+        # service settings 
         self._fps = 0.1
         self._running = False
         
@@ -64,13 +66,33 @@ class Service:
         
         self._camera_controller = CameraControl(self._csm, self._msm)
         
-
+        # set started preset
+        time_plus_three_hours = datetime.now() + timedelta(hours=3)
+    
+        morning_time = time_plus_three_hours.replace(hour=8, minute=0, second=0, microsecond=0)
+        evening_time = time_plus_three_hours.replace(hour=19, minute=0, second=0, microsecond=0)
+        
+        if morning_time <= time_plus_three_hours < evening_time:
+            logger.info("Setted Day mode[started]")
+            DayPreset().apply(self._csm)
+            self._camera_controller.mode = "Day"
+        else:
+            logger.info("Setted Night mode[started]")
+            NightPreset().apply(self._csm)
+            self._camera_controller.mode = "Night"
+            
+        
+        
     def start(self):
+        logger.info("Started servive...")
         self._running = True
         self._run()
         
     def _get_frame(self):
         self._is_get_frame = True
+        
+    def _save_frame(self):
+        self._is_save_frame = True
 
     def _run(self):
         try:
@@ -87,30 +109,36 @@ class Service:
                 
                 if self._is_get_frame:
                     self._is_get_frame = False
-                    frame, bboxes = self._img_flow.get_frame()                
-                    if frame: 
-                        metrics_dic = {}
-                        for metric in self._simple_metrics:
-                            # calculate matrics
-                            metrics_scores = metric.calculate(frame, bboxes)
-                            # make pickle
-                            metrics_dic[metric.name] = metrics_scores
-                        # logging
-                        logger.info(f"Metrics: {metrics_dic}")
+                    frame, bboxes = self._img_flow.get_frame()      
                     
-                    # update cam settings
-                    self._camera_controller.update()
+                    if frame is None:
+                        continue 
+                              
+                    metrics_dic = {}
+                    for metric in self._simple_metrics:
+                        # calculate matrics
+                        metrics_scores = metric.calculate(frame, bboxes)
+                        # make pickle
+                        metrics_dic[metric.name] = metrics_scores
+                    # logging
+                    logger.info(f"Metrics: {metrics_dic}")
                     
-                    # stop for a set time
-                    time.sleep(1/self._fps)
-                else:
-                    logger.debug("Failed to capture the frame")
+                    # save frame
+                    if self._is_save_frame:
+                        self._is_save_frame = False
+                        dt = time.time()
+                        cv2.imwrite(f"{self._log_dir}/{dt}.jpg", frame)
+                    
+                # update cam settings
+                self._camera_controller.update()
+                
+                # stop for a set time
+                time.sleep(1/self._fps)
+
         except KeyboardInterrupt:
             logger.info("Keyboard Interrupt")
-            self._camera._exit()
         except Exception as e:
             print(f"Error occurred: {e}\n{traceback.format_exc()}")
-            self._camera._exit()
         finally:
             logger.info("Service stopped...")
             

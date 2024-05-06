@@ -32,8 +32,13 @@ class DynamicRangeMetric(BaseMetric):
             return int(upper_bound - lower_bound)
 
         range_total = calc_range(frame)
-        range_inside = calc_range(frame, mask)
-        range_outside = calc_range(frame, mask_out)
+        
+        if bboxes == []:
+            range_inside = None
+            range_outside = None
+        else:
+            range_inside = calc_range(frame, mask)
+            range_outside = calc_range(frame, mask_out)
 
         return {
             "range_total": range_total,
