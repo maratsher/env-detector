@@ -1,4 +1,4 @@
-from base_tuner import BaseTuner
+from env_detector.tuner import BaseTuner
 
 class CameraTuner(BaseTuner):
     

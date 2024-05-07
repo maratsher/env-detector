@@ -92,11 +92,17 @@ class NightPreset(Preset):
         })
         
         
-NightPreset().apply(camera_tuner, motor_tuner, telemetry_tuner)
+settings_to_apply = {}
+current_settings = camera_tuner.get_settings([("ExposureTime", "float"), ("Gain", "float")])
+exposure_time = current_settings['ExposureTime']["value"]
+gain = current_settings['Gain']["value"]
+
+aperture = int(motor_tuner.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
 
 
-
-
+print(exposure_time)
+print(gain)
+print(aperture)
 
 
 

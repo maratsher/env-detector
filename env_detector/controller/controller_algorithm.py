@@ -1,13 +1,12 @@
 from env_detector.controller import DayPreset, NightPreset
-from env_detector.camera import CameraSettingsManager, MotorSettingsManager, 
+from env_detector.tuner import CameraTuner, MotorTuner, TelemetryTuner 
 from env_detector.config import logger
 
 class CameraControlАlgorithm:
-    def __init__(self, camera_settings_manager, motor_settings_manager, 
-                 telemetry_settings_manager):
-        self._cms: CameraSettingsManager = camera_settings_manager
-        self._msm: MotorSettingsManager = motor_settings_manager
-        self._tsm: 
+    def __init__(self, camera, motor, telemetry):
+        self._camera: CameraTuner = camera
+        self._motor: MotorTuner = motor
+        self._telemetry: TelemetryTuner = telemetry 
         
         self.mode = 'Day'  # Default mode is Day
         self.presets = {
@@ -20,10 +19,11 @@ class CameraControlАlgorithm:
     def update(self):
         logger.info(f"Current mode: {self.mode}")
         settings_to_apply = {}
-        current_settings = self._cms.get_settings([("ExposureTime", "float"), ("Gain", "float")])
+        current_settings = self._camera.get_settings([("ExposureTime", "float"), ("Gain", "float")])
         exposure_time = current_settings['ExposureTime']["value"]
         gain = current_settings['Gain']["value"]
-        aperture = int(self._msm.get_value("diaphragm")["value"])
+
+        aperture = int(self._motor.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
         
         logger.info(f"INPUT: ExposureTime {exposure_time} Gain {gain} Aperture {aperture}")
 
@@ -31,24 +31,23 @@ class CameraControlАlgorithm:
             if gain > 3.5:
                 if exposure_time < 3000:
                     settings_to_apply["ExposureTime"] = float(exposure_time + 10)
-                elif gain >= 15:
+                elif gain >= 10:
                     if aperture < 100:
-                        #settings_to_apply["Aperture"] = aperture + 10
-                        self._msm.apply_command("diaphragm", "move-at", 10)
+                        self._motor.apply_settings({"ApertudeAt" : 10})
+                    if gain >= 20:
+                        self._telemetry.apply_settings({"Pulse", 50})
                     if gain >= 30:
                         self.switch_mode('Night')
             elif gain <= 1.5:
-                if exposure_time > 200:
+                if exposure_time > 150:
                     settings_to_apply["ExposureTime"] = float(exposure_time - 10)
                 if aperture > 40:
-                    #settings_to_apply["Aperture"] = aperture - 0.1
-                    self._msm.apply_command("diaphragm", "move-at", -10)
+                    self._motor.apply_settings({"ApertudeAt" : -10})
 
         elif self.mode == 'Night':
             if gain <= 20:
                 if aperture > 50:
-                    #settings_to_apply["Aperture"] = aperture - 0.1
-                    self._msm.apply_command("diaphragm", "move-at", -10)
+                    self._motor.apply_settings({"ApertudeAt" : 10})
                 elif gain < 1.5:
                     if exposure_time > 500:
                         settings_to_apply["ExposureTime"] = float(exposure_time - 10)
@@ -56,9 +55,9 @@ class CameraControlАlgorithm:
                         self.switch_mode('Day')
         
         logger.info(f"SETTED: {settings_to_apply}")
-        self._cms.apply_settings(settings_to_apply)
+        self._camera.apply_settings(settings_to_apply)
 
     def switch_mode(self, mode):
         logger.info(f"Switched mode to {mode}")
         self.mode = mode
-        self.presets[mode].apply(self._cms)
+        self.presets[mode].apply(self._camera)

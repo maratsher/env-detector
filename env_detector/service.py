@@ -9,8 +9,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from multiprocessing import Pipe
 # from datetime import datetime
 
-from env_detector.camera import API, CameraSettingsManager, MotorSettingsManager
-from env_detector.controller import CameraControl, DayPreset, NightPreset
+from env_detector.tuner import RequestManager, CameraTuner, MotorTuner, TelemetryTuner
+from env_detector.controller import CameraControlАlgorithm, DayPreset, NightPreset
 from env_detector.config import logger, APP_SETTINGS
 from env_detector.utils import Commands
 from env_detector.api import FlaskAPI
@@ -23,7 +23,7 @@ class Service:
     def __init__(self) -> None:
         # frame reader
         self._get_frame_sch = BackgroundScheduler()
-        self._get_frame_sch.add_job(self._get_frame, 'interval', seconds=10)
+        self._get_frame_sch.add_job(self._get_frame, 'interval', seconds=5)
         self._is_get_frame = False
         self._get_frame_sch.start()
         
@@ -32,17 +32,17 @@ class Service:
         # logging    
         self._log_dir = "ed_logs"
         self._save_frame_sch = BackgroundScheduler()
-        self._save_frame_sch.add_job(self._save_frame, "interval", seconds=30*60)
+        self._save_frame_sch.add_job(self._save_frame, "interval", seconds=60*60)
         self._is_save_frame = False
         self._save_frame_sch.start()
 
         # metrics
+        # self._simple_metrics: list[BaseMetric] = [
+        #     PixelMetric("Pixel Metric", 10), DynamicRangeMetric("Dynamic range"), GLCMMetric("GLCM"), TextureMetric("Texture"), 
+        #     SharpnessMetric("Sharpness")]
         self._simple_metrics: list[BaseMetric] = [
-            PixelMetric("Pixel Metric", 10), DynamicRangeMetric("Dynamic range"), GLCMMetric("GLCM"), TextureMetric("Texture"), 
-            SharpnessMetric("Sharpness")]
-        
-        self._ssim = SSIMMetric("SSIM")
-        
+            PixelMetric("Pixel Metric", 10)]
+                
         # start the FlaskAPI process        
         self._cor_conn, self._api_conn = Pipe()
         self._flask_api = FlaskAPI(self._api_conn, port=APP_SETTINGS.PORT)
@@ -57,14 +57,18 @@ class Service:
  
         self._url_cam = f"{self._base_url}:8059"
         self._url_motor = f"{self._base_url}:8070"
+        self._url_telemetry = f"{self._base_url}:8090"
         
-        self._api_cam = API(self._url_cam)
-        self._api_motor = API(self._url_motor)
+        self._api_cam = RequestManager(self._url_cam)
+        self._api_motor = RequestManager(self._url_motor)
+        self._api_telemetry = RequestManager(self._url_telemetry)
         
-        self._csm = CameraSettingsManager(self._api_cam)
-        self._msm = MotorSettingsManager(self._api_motor)
+        self._camera = CameraTuner(self._api_cam)
+        self._motor = MotorTuner(self._api_motor)
+        self._telemetry = TelemetryTuner(self._api_telemetry)
         
-        self._camera_controller = CameraControl(self._csm, self._msm)
+        self._camera_controller = CameraControlАlgorithm(camera=self._camera, motor=self._motor, 
+                                                         telemetry=self._telemetry)
         
         # set started preset
         time_plus_three_hours = datetime.now() + timedelta(hours=3)
@@ -80,9 +84,7 @@ class Service:
             logger.info("Setted Night mode[started]")
             NightPreset().apply(self._csm)
             self._camera_controller.mode = "Night"
-            
-        
-        
+              
     def start(self):
         logger.info("Started servive...")
         self._running = True
@@ -126,7 +128,7 @@ class Service:
                     # save frame
                     if self._is_save_frame:
                         self._is_save_frame = False
-                        dt = time.time()
+                        dt = time.time() + timedelta(hours=3)
                         cv2.imwrite(f"{self._log_dir}/{dt}.jpg", frame)
                     
                 # update cam settings

@@ -3,10 +3,6 @@ import numpy as np
 from typing import Generator
 import enum
 
-
-from env_detector.camera import BaseCamera
-
-
 class IMAGE_FORMAT(enum.IntEnum):
     GRAY = 0
     BAYERRG8 = 1
@@ -39,7 +35,7 @@ class CameraError(Exception):
 
 
 def frames_generator(
-    camera: BaseCamera,
+    camera,
     batch_size=10,
 ) -> Generator[list, None, None]:
     """Generate frames batch.
