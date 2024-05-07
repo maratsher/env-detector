@@ -78,11 +78,11 @@ class Service:
         
         if morning_time <= time_plus_three_hours < evening_time:
             logger.info("Setted Day mode[started]")
-            DayPreset().apply(self._csm)
+            DayPreset().apply(self._camera, self._motor, self._telemetry)
             self._camera_controller.mode = "Day"
         else:
             logger.info("Setted Night mode[started]")
-            NightPreset().apply(self._csm)
+            NightPreset().apply(self._camera, self._motor, self._telemetry)
             self._camera_controller.mode = "Night"
               
     def start(self):
