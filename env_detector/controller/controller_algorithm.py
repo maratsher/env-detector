@@ -19,11 +19,17 @@ class CameraControlАlgorithm:
     def update(self):
         logger.info(f"Current mode: {self.mode}")
         settings_to_apply = {}
-        current_settings = self._camera.get_settings([("ExposureTime", "float"), ("Gain", "float")])
+        current_settings = self._camera.get_settings([("ExposureTime", "float"), ("Gain", "float"), ("AutoTargetBrightness", "int")])
         exposure_time = current_settings['ExposureTime']["value"]
         gain = current_settings['Gain']["value"]
-
-        aperture = int(self._motor.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
+        at = current_settings['AutoTargetBrightness']["value"]
+        
+        try:
+            aperture = int(self._motor.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
+            pulse = int(self._telemetry.get_settings([("Pulse", None)])["Pulse"]["value"])
+        except Exception as e:
+            logger.info(f"in get {e}")
+            return
         
         logger.info(f"INPUT: ExposureTime {exposure_time} Gain {gain} Aperture {aperture}")
 
@@ -31,28 +37,46 @@ class CameraControlАlgorithm:
             if gain > 3.5:
                 if exposure_time < 3000:
                     settings_to_apply["ExposureTime"] = float(exposure_time + 10)
-                elif gain >= 10:
-                    if aperture < 100:
-                        self._motor.apply_settings({"ApertudeAt" : 10})
+                elif gain >= 8:
+                    if at != 40:
+                        settings_to_apply["AutoTargetBrightness"] = 40
+                    if aperture <= 100:
+                        self._motor.apply_settings({"ApertudeAt": 10})
                     if gain >= 20:
-                        self._telemetry.apply_settings({"Pulse", 50})
+                        if pulse != 50:
+                            self._telemetry.apply_settings({"Pulse": 50})
                     if gain >= 30:
                         self.switch_mode('Night')
             elif gain <= 1.5:
-                if exposure_time > 150:
+                if exposure_time > 500:
                     settings_to_apply["ExposureTime"] = float(exposure_time - 10)
-                if aperture > 40:
+                if aperture >= 40:
                     self._motor.apply_settings({"ApertudeAt" : -10})
+                if exposure_time <= 500:
+                    if gain <= 1.3:
+                        if at != 25:
+                            settings_to_apply["AutoTargetBrightness"] = 25
+                    # if gain == 1.0:
+                    #     if at != 20:
+                    #         settings_to_apply["AutoTargetBrightness"] = 20
+            else:
+                if at != 30:
+                    settings_to_apply["AutoTargetBrightness"] = 30
 
         elif self.mode == 'Night':
             if gain <= 20:
-                if aperture > 50:
+                if aperture >= 50:
                     self._motor.apply_settings({"ApertudeAt" : 10})
                 elif gain < 1.5:
                     if exposure_time > 500:
                         settings_to_apply["ExposureTime"] = float(exposure_time - 10)
                     else:
                         self.switch_mode('Day')
+                        
+            if gain <= 10:
+                if pulse != 50:
+                    self._telemetry.apply_settings({"Pulse": 50})
+                        
         
         logger.info(f"SETTED: {settings_to_apply}")
         self._camera.apply_settings(settings_to_apply)

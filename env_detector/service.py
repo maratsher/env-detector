@@ -73,8 +73,8 @@ class Service:
         # set started preset
         time_plus_three_hours = datetime.now() + timedelta(hours=3)
     
-        morning_time = time_plus_three_hours.replace(hour=8, minute=0, second=0, microsecond=0)
-        evening_time = time_plus_three_hours.replace(hour=19, minute=0, second=0, microsecond=0)
+        morning_time = time_plus_three_hours.replace(hour=8, minute=30, second=0, microsecond=0)
+        evening_time = time_plus_three_hours.replace(hour=19, minute=30, second=0, microsecond=0)
         
         if morning_time <= time_plus_three_hours < evening_time:
             logger.info("Setted Day mode[started]")
@@ -128,7 +128,7 @@ class Service:
                     # save frame
                     if self._is_save_frame:
                         self._is_save_frame = False
-                        dt = time.time() + timedelta(hours=3)
+                        dt = datetime.now() + timedelta(hours=3)
                         cv2.imwrite(f"{self._log_dir}/{dt}.jpg", frame)
                     
                 # update cam settings
