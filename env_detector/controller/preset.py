@@ -59,7 +59,7 @@ class NightPreset(Preset):
         },
         "telemetry":    
         {
-            "Pulse": 100  
+            "Pulse": 70  
         },
         "motor":
         {

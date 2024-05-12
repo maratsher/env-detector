@@ -40,7 +40,7 @@ class CameraControlАlgorithm:
                 elif gain >= 8:
                     if at != 40:
                         settings_to_apply["AutoTargetBrightness"] = 40
-                    if aperture <= 100:
+                    if aperture < 91:
                         self._motor.apply_settings({"ApertudeAt": 10})
                     if gain >= 20:
                         if pulse != 50:
@@ -48,24 +48,24 @@ class CameraControlАlgorithm:
                     if gain >= 30:
                         self.switch_mode('Night')
             elif gain <= 1.5:
-                if exposure_time > 500:
+                if exposure_time > 400:
                     settings_to_apply["ExposureTime"] = float(exposure_time - 10)
-                if aperture >= 40:
+                if aperture >= 40 and aperture != 0:
                     self._motor.apply_settings({"ApertudeAt" : -10})
-                if exposure_time <= 500:
-                    if gain <= 1.3:
+                if exposure_time <= 400:
+                    if gain == 1.0:
                         if at != 25:
                             settings_to_apply["AutoTargetBrightness"] = 25
-                    # if gain == 1.0:
-                    #     if at != 20:
-                    #         settings_to_apply["AutoTargetBrightness"] = 20
+                        else:                      
+                            if exposure_time > 200:
+                                settings_to_apply["ExposureTime"] = float(exposure_time - 10)
             else:
-                if at != 30:
+                if at != 30 and exposure_time < 200:
                     settings_to_apply["AutoTargetBrightness"] = 30
 
         elif self.mode == 'Night':
             if gain <= 20:
-                if aperture >= 50:
+                if aperture >= 50 and aperture < 91:
                     self._motor.apply_settings({"ApertudeAt" : 10})
                 elif gain < 1.5:
                     if exposure_time > 500:
@@ -76,6 +76,11 @@ class CameraControlАlgorithm:
             if gain <= 10:
                 if pulse != 50:
                     self._telemetry.apply_settings({"Pulse": 50})
+                    
+            if gain >= 20:
+                if pulse != 80:
+                    self._telemetry.apply_settings({"Pulse": 80})
+                
                         
         
         logger.info(f"SETTED: {settings_to_apply}")
@@ -84,4 +89,4 @@ class CameraControlАlgorithm:
     def switch_mode(self, mode):
         logger.info(f"Switched mode to {mode}")
         self.mode = mode
-        self.presets[mode].apply(self._camera)
+        self.presets[mode].apply(self._camera, self._motor, self._telemetry)
