@@ -3,9 +3,6 @@ import traceback
 
 from datetime import datetime, timedelta
 
-import cv2
-from apscheduler.schedulers.background import BackgroundScheduler
-
 from multiprocessing import Pipe
 # from datetime import datetime
 
@@ -14,35 +11,11 @@ from env_detector.controller import CameraControlАlgorithm, DayPreset, NightPre
 from env_detector.config import logger, APP_SETTINGS
 from env_detector.utils import Commands
 from env_detector.api import FlaskAPI
-from env_detector.metrics import PixelMetric, DynamicRangeMetric, GLCMMetric, TextureMetric, BaseMetric, SSIMMetric, SharpnessMetric, RMSMetric
-from env_detector.images_reader import ImageFlow
 
 
 class Service:
 
     def __init__(self) -> None:
-        # frame reader
-        self._get_frame_sch = BackgroundScheduler()
-        self._get_frame_sch.add_job(self._get_frame, 'interval', seconds=5)
-        self._is_get_frame = False
-        self._get_frame_sch.start()
-        
-        self._img_flow = ImageFlow("/tmp/storage/snap-pass")
-        
-        # logging    
-        self._log_dir = "ed_logs"
-        self._save_frame_sch = BackgroundScheduler()
-        self._save_frame_sch.add_job(self._save_frame, "interval", seconds=60*60)
-        self._is_save_frame = False
-        self._save_frame_sch.start()
-
-        # metrics
-        # self._simple_metrics: list[BaseMetric] = [
-        #     PixelMetric("Pixel Metric", 10), DynamicRangeMetric("Dynamic range"), GLCMMetric("GLCM"), TextureMetric("Texture"), 
-        #     SharpnessMetric("Sharpness")]
-        self._simple_metrics: list[BaseMetric] = [
-            PixelMetric("Pixel Metric", 10)]
-                
         # start the FlaskAPI process        
         self._cor_conn, self._api_conn = Pipe()
         self._flask_api = FlaskAPI(self._api_conn, port=APP_SETTINGS.PORT)
@@ -108,28 +81,6 @@ class Service:
                 if not self._running:
                     time.sleep(1)
                     continue
-                    
-                if self._is_get_frame:
-                    self._is_get_frame = False
-                    frame, bboxes = self._img_flow.get_frame()      
-                    
-                    if frame is None:
-                        continue 
-                              
-                    metrics_dic = {}
-                    for metric in self._simple_metrics:
-                        # calculate matrics
-                        metrics_scores = metric.calculate(frame, bboxes)
-                        # make pickle
-                        metrics_dic[metric.name] = metrics_scores
-                    # logging
-                    logger.info(f"Metrics: {metrics_dic}")
-                    
-                    # save frame
-                    if self._is_save_frame:
-                        self._is_save_frame = False
-                        dt = datetime.now() + timedelta(hours=3)
-                        cv2.imwrite(f"{self._log_dir}/{dt}.jpg", frame)
                     
                 # update cam settings
                 self._camera_controller.update()
