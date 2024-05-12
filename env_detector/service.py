@@ -108,7 +108,7 @@ class Service:
                 if not self._running:
                     time.sleep(1)
                     continue
-                
+                    
                 if self._is_get_frame:
                     self._is_get_frame = False
                     frame, bboxes = self._img_flow.get_frame()      

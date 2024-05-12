@@ -4,7 +4,14 @@ class Preset:
 
     def apply(self, camera, motor, telemetry):
         camera.apply_settings(self.settings["camera"])
-        motor.apply_settings(self.settings["motor"])
+        
+        # TODO change with MoveTo
+        apertude_to = self.settings["motor"]["ApertudeTo"]
+        apertude_cuurent = int(motor.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])       
+        apertude_at = apertude_to - apertude_cuurent
+        motor.apply_settings({"ApertudeAt" : apertude_at})
+        #motor.apply_settings(self.settings["motor"])    
+        
         telemetry.apply_settings(self.settings["telemetry"])
 
 class DayPreset(Preset):
@@ -33,7 +40,7 @@ class DayPreset(Preset):
             },
             "motor":
             {
-                "Apertude": 10
+                "ApertudeTo": 10
             }
         })
 
@@ -63,7 +70,7 @@ class NightPreset(Preset):
         },
         "motor":
         {
-            "Apertude": 100
+            "ApertudeTo": 100
         }
         
         })

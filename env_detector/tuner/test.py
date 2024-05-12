@@ -17,18 +17,26 @@ camera_tuner = CameraTuner(api_camera)
 motor_tuner = MotorTuner(api_motor)
 telemetry_tuner = TelemetryTuner(api_telemetry)
 
+
 class Preset:
     def __init__(self, settings):
         self.settings = settings
 
     def apply(self, camera, motor, telemetry):
-        ans = camera.apply_settings(self.settings["camera"])
-        print(ans)
-        ans = motor.apply_settings(self.settings["motor"])
-        print(ans)
-        ans = telemetry.apply_settings(self.settings["telemetry"])
-        print(ans)
+        camera.apply_settings(self.settings["camera"])
         
+        # TODO change with MoveTo
+        apertude_to = self.settings["motor"]["ApertudeTo"]
+        apertude_cuurent = int(motor.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])    
+        
+        apertude_at = apertude_to - apertude_cuurent
+        print(apertude_to, "apertude_to")  
+        print(apertude_cuurent, "apertude_cuurent") 
+        print(apertude_at, "apertude_at")
+        motor.apply_settings({"ApertudeAt" : apertude_at})
+        #motor.apply_settings(self.settings["motor"])    
+        
+        telemetry.apply_settings(self.settings["telemetry"])
 
 class DayPreset(Preset):
     def __init__(self):
@@ -82,7 +90,7 @@ class NightPreset(Preset):
         },
         "telemetry":    
         {
-            "Pulse": 100  
+            "Pulse": 70  
         },
         "motor":
         {
@@ -90,19 +98,27 @@ class NightPreset(Preset):
         }
         
         })
-        
-        
+
+
+DayPreset().apply(camera_tuner, motor_tuner, telemetry_tuner)
+
 settings_to_apply = {}
-current_settings = camera_tuner.get_settings([("ExposureTime", "float"), ("Gain", "float")])
+current_settings = camera_tuner.get_settings([("ExposureTime", "float"), ("Gain", "float"), ("AutoTargetBrightness", "int")])
 exposure_time = current_settings['ExposureTime']["value"]
 gain = current_settings['Gain']["value"]
+at = current_settings['AutoTargetBrightness']["value"]
 
-aperture = int(motor_tuner.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
-
+try:
+    aperture = int(motor_tuner.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
+    pulse = int(telemetry_tuner.get_settings([("Pulse", None)])["Pulse"]["value"])
+except Exception as e:
+    print("mo")
 
 print(exposure_time)
 print(gain)
 print(aperture)
+print(pulse)
+
 
 
 

@@ -31,7 +31,7 @@ class CameraControlАlgorithm:
             logger.info(f"in get {e}")
             return
         
-        logger.info(f"INPUT: ExposureTime {exposure_time} Gain {gain} Aperture {aperture}")
+        logger.info(f"INPUT: ExposureTime {exposure_time} Gain {gain} Aperture {aperture} Pulse {pulse} AutoTargetBrightness {at}")
 
         if self.mode == 'Day':
             if gain > 3.5:
