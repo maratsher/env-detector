@@ -102,22 +102,22 @@ class NightPreset(Preset):
 
 DayPreset().apply(camera_tuner, motor_tuner, telemetry_tuner)
 
-settings_to_apply = {}
-current_settings = camera_tuner.get_settings([("ExposureTime", "float"), ("Gain", "float"), ("AutoTargetBrightness", "int")])
-exposure_time = current_settings['ExposureTime']["value"]
-gain = current_settings['Gain']["value"]
-at = current_settings['AutoTargetBrightness']["value"]
+# settings_to_apply = {}
+# current_settings = camera_tuner.get_settings([("ExposureTime", "float"), ("Gain", "float"), ("AutoTargetBrightness", "int")])
+# exposure_time = current_settings['ExposureTime']["value"]
+# gain = current_settings['Gain']["value"]
+# at = current_settings['AutoTargetBrightness']["value"]
 
-try:
-    aperture = int(motor_tuner.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
-    pulse = int(telemetry_tuner.get_settings([("Pulse", None)])["Pulse"]["value"])
-except Exception as e:
-    print("mo")
+# try:
+#     aperture = int(motor_tuner.get_settings([("ApertudeAt", None)])["ApertudeAt"]["value"])
+#     pulse = int(telemetry_tuner.get_settings([("Pulse", None)])["Pulse"]["value"])
+# except Exception as e:
+#     print("mo")
 
-print(exposure_time)
-print(gain)
-print(aperture)
-print(pulse)
+# print(exposure_time)
+# print(gain)
+# print(aperture)
+# print(pulse)
 
 
 

@@ -50,11 +50,11 @@ class NightPreset(Preset):
         "camera":
         {    
             "GainAuto": "Continuous",
-            "AutoTargetBrightness": 60,
+            "AutoTargetBrightness": 50,
             "AutoGainLowerLimit": 1.0,
             "AutoGainUpperLimit": 32.0,
             "Gamma": 0.6,
-            "Brightness": 100,
+            "Brightness": 80,
             "Contrast": 45,
             "ContrastThreshold": 20,
             "FFCEnable": "On",
@@ -66,7 +66,7 @@ class NightPreset(Preset):
         },
         "telemetry":    
         {
-            "Pulse": 70  
+            "Pulse": 30  
         },
         "motor":
         {
